@@ -1,6 +1,9 @@
 package com.example.devownerjav;
 
+import static androidx.core.content.ContextCompat.getSystemService;
+
 import android.app.admin.DeviceAdminReceiver;
+import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -16,6 +19,8 @@ public class DevAdminReceiver extends DeviceAdminReceiver {
     public void onEnabled(@NonNull Context context, @NonNull Intent intent) {
         super.onEnabled(context, intent);
         Log.d(TAG, "onEnabled: ");
+
+
     }
 
 //    @Override
@@ -51,4 +56,5 @@ public class DevAdminReceiver extends DeviceAdminReceiver {
     public void onLockTaskModeExiting(Context context, Intent intent) {
         showLog("KIOSK mode disabled");
     }
+
 }

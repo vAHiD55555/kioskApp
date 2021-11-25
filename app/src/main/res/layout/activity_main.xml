@@ -21,8 +21,6 @@
         android:layout_centerInParent="true"
         android:text="Remove Owner" />
 
-
-
     <LinearLayout
         android:id="@+id/layoutview"
         android:layout_width="match_parent"
@@ -42,13 +40,55 @@
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:text="DEACTIVATE"/>
-    </LinearLayout>
 
-    <ListView
-        android:id="@+id/listItems"
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/layoutview"
-        tools:ignore="UnknownId" />
+        android:gravity="center"
+        android:orientation="horizontal">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="100dp"
+            android:text="VISIBLE"/>
+        <TextView
+            android:layout_marginLeft="100dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="HIDDEN"/>
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_centerInParent="true"
+        android:layout_below="@id/header"
+        android:weightSum="2">
+
+        <ListView
+            android:layout_toRightOf="@+id/hidden"
+            android:id="@+id/visible"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            tools:ignore="UnknownId">
+
+        </ListView>
+
+        <ListView
+        android:id="@+id/hidden"
+        android:layout_width="0dp"
+            android:layout_weight="1"
+        android:layout_height="wrap_content"
+        tools:ignore="UnknownId">
+
+        </ListView>
+    </LinearLayout>
 
 </RelativeLayout>

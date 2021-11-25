@@ -13,8 +13,12 @@
         android:required="false" />
 
     <!-- ADMIN MODE -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CHANGE_COMPONENT_ENABLED_STATE" />
+    <uses-permission android:name="android.permission.DELETE_PACKAGES" />
+    <uses-permission android:name="android.permission.INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"
+        android:maxSdkVersion="29" />
+    <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
 
     <!-- Device Auto Boot -->
     <!-- KIOSK   -->
@@ -67,19 +71,7 @@
             </intent-filter>
         </receiver>
 
-        <!-- Kiosk -->
-<!--        <receiver-->
-<!--            android:name=".services.DeviceAdminService"-->
-<!--            android:description="@string/app_name"-->
-<!--            android:label="@string/app_name"-->
-<!--            android:permission="android.permission.BIND_DEVICE_ADMIN">-->
-<!--            <meta-data-->
-<!--                android:name="android.app.device_admin"-->
-<!--                android:resource="@xml/device_admin"/>-->
-<!--            <intent-filter>-->
-<!--                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />-->
-<!--            </intent-filter>-->
-<!--        </receiver>-->
+
     </application>
 
 </manifest>

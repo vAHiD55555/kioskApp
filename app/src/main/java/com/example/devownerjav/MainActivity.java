@@ -1,5 +1,6 @@
 package com.example.devownerjav;
 
+import android.Manifest;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -8,6 +9,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -17,6 +19,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TabHost;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -47,9 +50,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /*Kiosk*/
     private DevicePolicyManager devicePolicyManager = null;
-    ComponentName adminCompName = null;
+    private ComponentName adminCompName = null;
 
-    private ListView lmView;
+    private ListView lmViewVisible;
+    private ListView lmViewHidden;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,10 +63,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         dpm = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
 
+
         /*ADMIN TEST PROGRAMATICALLY OWN DEVICE*/
         Button btn2 = (Button) findViewById(R.id.button2);
         Button btn = (Button) findViewById(R.id.button);
-        lmView = (ListView) findViewById(R.id.listItems);
+
+
+        /*KIOSK ENABLE DISABLE*/
+        Button btnActivate = findViewById(R.id.btnActivate);
+        Button btnDeactivate = findViewById(R.id.btnDeactivate);
+        btnActivate.setOnClickListener(this);
+        btnDeactivate.setOnClickListener(this);
+
+        /*APPLICATION LISTING*/
+        lmViewVisible = (ListView) findViewById(R.id.visible);
+        lmViewHidden = (ListView) findViewById(R.id.hidden);
 
         btn2.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -91,21 +107,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-        Button btnActivate = findViewById(R.id.btnActivate);
-        Button btnDeactivate = findViewById(R.id.btnDeactivate);
-        lmView = findViewById(R.id.listItems);
-
-        btnActivate.setOnClickListener(this);
-        btnDeactivate.setOnClickListener(this);
-
         initLogger();
         initDeviceAdmin();
 
-//        installedApps();
-        IntentApps();
-
+        installedApps();
     }
 
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause: Application paused");
+    }
 
     @Override
     protected void onResume() {
@@ -139,16 +152,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             e.printStackTrace();
             Log.e(TAG, "DenieOwner: "+e+"" );
         }
-
-
-        //                activateKIOSK(false);
-//                DevicePolicyManager devicePolicyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
-////                devicePolicyManager.clearDeviceOwnerApp(getPackageName()+".DevAdminReceiver");
-//                devicePolicyManager.clearDeviceOwnerApp(getPackageName()+".DevAdminReceiver");
-
-//                ComponentName cn = new ComponentName(getPackageName(), getPackageName() + ".DevAdminReceiver");
-//                DevicePolicyManager devicePolicyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
-//                devicePolicyManager.removeActiveAdmin(cn);
 
     }
 
@@ -186,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     private void initDeviceAdmin(){
         devicePolicyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
-        adminCompName = new ComponentName(this, DevAdminReceiver.class);              // Initializing the component;
+        adminCompName = new ComponentName(getApplicationContext(),DevAdminReceiver.class);
 
         if (devicePolicyManager.isDeviceOwnerApp(getPackageName())) {
             devicePolicyManager.setLockTaskPackages(adminCompName, new String[]{getPackageName()});
@@ -224,8 +227,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void installedApps()
     {
-
         List<String> yArrayList = new ArrayList<String>();
+        List<String> xArrayList = new ArrayList<String>();
         List<PackageInfo> packList = this.getPackageManager().getInstalledPackages(0);
         for (int i=0; i < packList.size(); i++)
         {
@@ -233,35 +236,52 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             String appName = packInfo.applicationInfo.loadLabel(getPackageManager()).toString();
             String packageName = packInfo.applicationInfo.packageName;
             String mainActivity = packInfo.applicationInfo.className ;
-//            Log.e("App № " + Integer.toString(i), mainActivity+" : "+appName);
+//            Log.e("App № " + Integer.toString(i), mainActivity+" : "+appName +":"+packageName+""+" , isHidden :"+dpm.isApplicationHidden(adminCompName,appName));
+//            yArrayList.add(packageName);
 
-
-
-            if (packInfo.applicationInfo.className != null) {
-                Log.i("App № " + Integer.toString(i), mainActivity+" : "+packageName);
+            if (dpm.isApplicationHidden(adminCompName,appName) == false){
+                Log.i("App № " + Integer.toString(i), "false : "+packageName);
                 yArrayList.add(packageName);
+            }else{
+                Log.i("App № " + Integer.toString(i), "true : "+packageName);
+                xArrayList.add(packageName);
             }
 
         }
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
+        ArrayAdapter<String> visibleArray = new ArrayAdapter<String>(
                 this,
                 android.R.layout.simple_list_item_1,
                 yArrayList);
+        ArrayAdapter<String> HiddenArray = new ArrayAdapter<String>(
+          this,
+          android.R.layout.simple_list_item_1,
+          xArrayList);
 
-        lmView.setAdapter(arrayAdapter);
+        lmViewVisible.setAdapter(visibleArray);
 
-        lmView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        lmViewVisible.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
                 try{
                     String selectedItem = yArrayList.get(position);
-                    String gCls = selectedItem+"."+MainActivity.class;
-                    Toast.makeText(getApplicationContext(), gCls, Toast.LENGTH_SHORT).show();
-                    PackageManager p = getPackageManager();
-                    ComponentName componentName = new ComponentName(String.valueOf(this),gCls); // activity which is first time open in manifiest file which is declare as <category android:name="android.intent.category.LAUNCHER" />
-                    Log.d(TAG, "onItemClick: "+gCls+":"+componentName);
-                   p.setComponentEnabledSetting(componentName,PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+                    hideApp(selectedItem);
+
+                }catch (Exception e){
+                    Log.e(TAG, "onItemClick: ",e );
+                }
+            }
+        });
+
+        lmViewHidden.setAdapter(HiddenArray);
+
+        lmViewHidden.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                try{
+                    String selectedItem = xArrayList.get(position);
+                    showApp(selectedItem);
 
                 }catch (Exception e){
                     Log.e(TAG, "onItemClick: ",e );
@@ -270,50 +290,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-    public void IntentApps(){
-
-        List<String> yArrayList = new ArrayList<String>();
-        List<String> xArrayList = new ArrayList<String>();
-
-        final PackageManager pm = getPackageManager();
-
-        Intent mIntent = new Intent(Intent.ACTION_MAIN,null);
-        mIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-
-        List<ResolveInfo> appList = pm.queryIntentActivities(mIntent,0);
-        Collections.sort(appList, new ResolveInfo.DisplayNameComparator(pm));
-
-        for (ResolveInfo temp: appList){
-            Log.i("AppLogs $ : ", "Package and Activity Name = " + temp.activityInfo.packageName+"    "+temp.activityInfo.name);
-            yArrayList.add(temp.activityInfo.name);
-            xArrayList.add(temp.activityInfo.packageName);
+    private void hideApp(String pkgName){
+        try{
+            boolean isResult;
+            isResult = dpm.setApplicationHidden(adminCompName, pkgName,true);
+            Log.d(TAG, "Hide Application Resutlt: ["+isResult+"]");
+        }catch (Exception e){
+            e.printStackTrace();
+            Log.e(TAG, "hideApp:["+e+"], pkg : ["+this.getPackageName()+"]" );
         }
+    }
 
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
-                this,
-                android.R.layout.simple_list_item_1,
-                yArrayList);
-
-        lmView.setAdapter(arrayAdapter);
-
-        lmView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-                try{
-                    String selectedItem = yArrayList.get(position);
-//                    PackageManager p = getPackageManager();
-//                    ComponentName componentName = new ComponentName("YOUR_PACKAGE_NAME", selectedItem);
-//                    p.setComponentEnabledSetting(componentName, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
-                    Log.w(TAG, "onItemClick: "+selectedItem );
-                }catch (Exception e){
-                    Log.e(TAG, "onItemClick: ",e );
-                }
-            }
-        });
+    private void showApp(String pkgName){
+        try{
+            boolean isResult;
+            isResult = dpm.setApplicationHidden(adminCompName, pkgName,false);
+            Log.d(TAG, "Show Application Resutlt: ["+isResult+"]");
+        }catch (Exception e){
+            e.printStackTrace();
+            Log.e(TAG, "showApp:["+e+"], pkg : ["+this.getPackageName()+"]" );
+        }
     }
 
     //    Run application owner with this code
-//     adb shell dpm set-device-owner com.example.devownerjav/.DevAdminReceiver
+//      adb shell dpm set-device-owner com.example.devownerjav/.DevAdminReceiver
+//      adb shell dpm set-active-admin --user current com.example.devownerjav/.DevAdminReceiver
 //      adb shell dpm remove-active-admin com.example.devownerjav/.DevAdminReceiver
+//      adb shell pm list packages -s
 }
