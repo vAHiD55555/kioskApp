@@ -284,6 +284,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Log.d(TAG, "onItemClick : "+selectedItem+"");
 //                        showApp(selectedItem);
                     setApplicationVisibility(selectedItem ,isHidden);
+                    ArrayListing.clear();
+                    ListAllApplications();
+                    ArrayListing.notifyDataSetChanged();
                 }catch (Exception e){
                     Log.e(TAG, "onItemClick: ",e );
                 }
