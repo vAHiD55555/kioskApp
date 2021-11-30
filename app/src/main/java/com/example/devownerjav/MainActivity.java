@@ -113,13 +113,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         initDeviceAdmin();
 
         if(dpm.isDeviceOwnerApp(this.getPackageName())==true){
-//            installedApps();
-
-            ListVisibleApplications();
-            ListHiddenApplications();
+            ListAllApplications();
         }
-
-
     }
 
 
@@ -234,204 +229,68 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /* APPLICATION LIST*/
 
-    public void installedApps()
-    {
-        List<String> visibleList = new ArrayList<String>();
-        List<String> hiddenList = new ArrayList<String>();
-        List<PackageInfo> packList = this.getPackageManager().getInstalledPackages(0);
-        for (int i=0; i < packList.size(); i++)
-        {
-            PackageInfo packInfo = packList.get(i);
-            String appName = packInfo.applicationInfo.loadLabel(getPackageManager()).toString();
-            String packageName = packInfo.applicationInfo.packageName;
-            String mainActivity = packInfo.applicationInfo.className ;
-
-            Log.e("App № " + Integer.toString(i),  "isHidden :["+dpm.getApplicationRestrictions(adminCompName,appName)+"] : "+packageName);
-//            yArrayList.add(packageName);
-
-            if (dpm.isApplicationHidden(adminCompName,appName) == false){
-                Log.i("App № " + Integer.toString(i), "visibleList : "+packageName);
-                visibleList.add(packageName);
-            }else{
-                Log.i("App № " + Integer.toString(i), "hiddenList : "+packageName);
-                hiddenList.add(packageName);
-            }
-
-        }
-        ArrayAdapter<String> visibleArray = new ArrayAdapter<String>(
-                this,
-                android.R.layout.simple_list_item_1,
-                visibleList);
-        ArrayAdapter<String> HiddenArray = new ArrayAdapter<String>(
-          this,
-          android.R.layout.simple_list_item_1,
-          hiddenList);
-
-        lmViewVisible.setAdapter(visibleArray);
-
-        lmViewVisible.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-                try{
-                    String selectedItem = visibleList.get(position);
-                    Log.d(TAG, "onItemClick Y: "+selectedItem+"");
-                    hideApp(selectedItem);
-                }catch (Exception e){
-                    Log.e(TAG, "onItemClick: ",e );
-                }
-            }
-        });
-
-        lmViewHidden.setAdapter(HiddenArray);
-
-        lmViewHidden.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-                try{
-                    String selectedItem = hiddenList.get(position);
-                    Log.d(TAG, "onItemClick X: "+selectedItem+"");
-                    showApp(selectedItem);
-                }catch (Exception e){
-                    Log.e(TAG, "onItemClick: ",e );
-                }
-            }
-        });
-    }
-
-    private void hideApp(String pkgName){
+    private void ListAllApplications(){
         try{
-            boolean isResult;
-            isResult = dpm.setApplicationHidden(adminCompName, pkgName,true);
-            Log.d(TAG, "Hide Application Resutlt: ["+isResult+"]");
+            PackageManager pm = getPackageManager();
+
+            int flags = pm.GET_META_DATA | pm.GET_SHARED_LIBRARY_FILES | pm.GET_UNINSTALLED_PACKAGES;
+
+            List<String> visibleList = new ArrayList<String>();
+            List<String> hiddenList = new ArrayList<String>();
+            List<ApplicationInfo> apps = pm.getInstalledApplications(flags);
+            for(ApplicationInfo app : apps){
+
+                if (dpm.isApplicationHidden(adminCompName,app.packageName) == false){
+                    visibleList.add(app.packageName);
+                    Log.d(TAG, "ListVisibleApplications: visible list : "+app.packageName+"");
+                }else{
+                    hiddenList.add(app.packageName);
+                }
+            }
+
+            onSelectedListiner(visibleList,lmViewVisible,true);
+            onSelectedListiner(hiddenList,lmViewHidden,false);
+
         }catch (Exception e){
-            e.printStackTrace();
-            Log.e(TAG, "hideApp:["+e+"], pkg : ["+this.getPackageName()+"]" );
+            Log.e(TAG, "getAllApplications: ",e );
         }
+
     }
 
-    private void showApp(String pkgName){
+    private void setApplicationVisibility(String pkgName , Boolean isVisible){
         try{
-            boolean isResult;
-            isResult = dpm.setApplicationHidden(adminCompName, pkgName,false);
-            Log.d(TAG, "Show Application Resutlt: ["+isResult+"]");
+            boolean isResult ;
+            isResult = dpm.setApplicationHidden(adminCompName, pkgName,isVisible);
         }catch (Exception e){
             e.printStackTrace();
             Log.e(TAG, "showApp:["+e+"], pkg : ["+this.getPackageName()+"]" );
         }
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-    }
+    private void onSelectedListiner(List<String> ListItems,ListView lmView,Boolean isHidden ){
+        ArrayAdapter<String> ArrayListing = new ArrayAdapter<String>(
+                this,
+                android.R.layout.simple_list_item_1,
+                ListItems);
 
-    private void ListVisibleApplications(){
-        try{
-            PackageManager pm = getPackageManager();
-            List<String> visibleList = new ArrayList<String>();
-            List<ApplicationInfo> apps = pm.getInstalledApplications(0);
-            List<ApplicationInfo> Installed = new ArrayList<ApplicationInfo>();
-            for(ApplicationInfo app : apps){
-//                if((app.flags & ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)!= 0){
-//                    Log.d(TAG, "getAllApplications: Update flags "+app+"");
-//                }else if((app.flags & ApplicationInfo.FLAG_SYSTEM) != 0){
-//                    Log.d(TAG, "getAllApplications: flags "+app+"");
-//                }else{
-//                    Log.d(TAG, "getAllApplications: apps "+app+"");
-//                }
+        lmView.setAdapter(ArrayListing);
 
-//                Log.d(TAG, "getAllApplications: "+app.packageName+" : "+dpm.isApplicationHidden(adminCompName,app.packageName)+"");
-//                visibleList.add(app.packageName);
+        lmView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                if (dpm.isApplicationHidden(adminCompName,app.packageName) == false){
-                    visibleList.add(app.packageName);
-//                    Log.d(TAG, "ListVisibleApplications: visible list : "+app.packageName+"");
+                try{
+                    String selectedItem = ListItems.get(position);
+                    Log.d(TAG, "onItemClick : "+selectedItem+"");
+//                        showApp(selectedItem);
+                    setApplicationVisibility(selectedItem ,isHidden);
+                }catch (Exception e){
+                    Log.e(TAG, "onItemClick: ",e );
                 }
             }
-
-            ArrayAdapter<String> visibleArray = new ArrayAdapter<String>(
-                    this,
-                    android.R.layout.simple_list_item_1,
-                    visibleList);
-
-            lmViewVisible.setAdapter(visibleArray);
-
-            lmViewVisible.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-                    try{
-                        String selectedItem = visibleList.get(position);
-                        Log.d(TAG, "onItemClick Y: "+selectedItem+"");
-                          hideApp(selectedItem);
-                    }catch (Exception e){
-                        Log.e(TAG, "onItemClick: ",e );
-                    }
-                }
-            });
-
-        }catch (Exception e){
-            Log.e(TAG, "getAllApplications: ",e );
-        }
+        });
 
     }
-
-
-    private void ListHiddenApplications(){
-        try{
-            PackageManager pm = getPackageManager();
-            List<String> hiddenList = new ArrayList<String>();
-            List<ApplicationInfo> apps = pm.getInstalledApplications(0);
-            List<ApplicationInfo> Installed = new ArrayList<ApplicationInfo>();
-            for(ApplicationInfo app : apps){
-
-                if (dpm.isApplicationHidden(adminCompName,app.packageName) == true){
-                    hiddenList.add(app.packageName);
-                    Log.d(TAG, "ListVisibleApplications: hidden list : "+app.packageName+"");
-                }
-            }
-
-            ArrayAdapter<String> HiddenArray = new ArrayAdapter<String>(
-                    this,
-                    android.R.layout.simple_list_item_1,
-                    hiddenList);
-
-            lmViewHidden.setAdapter(HiddenArray);
-
-            lmViewHidden.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-                    try{
-                        String selectedItem = hiddenList.get(position);
-                        Log.d(TAG, "onItemClick X: "+selectedItem+"");
-                        showApp(selectedItem);
-                    }catch (Exception e){
-                        Log.e(TAG, "onItemClick: ",e );
-                    }
-                }
-            });
-
-
-        }catch (Exception e){
-            Log.e(TAG, "getAllApplications: ",e );
-        }
-
-    }
-
-//    private void setApplicationVisibility(String pkgName , Boolean isVisible){
-//        try{
-//            Log.d(TAG, " Application Before Result: ["+dpm.isApplicationHidden(adminCompName,pkgName)+"]");
-//            boolean isResult;
-//            isResult = dpm.setApplicationHidden(adminCompName, pkgName,isVisible);
-//            Log.d(TAG, " Application Result: ["+isResult+"]");
-//        }catch (Exception e){
-//            e.printStackTrace();
-//            Log.e(TAG, "showApp:["+e+"], pkg : ["+this.getPackageName()+"]" );
-//        }
-//    }
 
 
     //    Run application owner with this code
