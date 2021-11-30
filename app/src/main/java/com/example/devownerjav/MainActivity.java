@@ -33,6 +33,7 @@ import com.orhanobut.logger.PrettyFormatStrategy;
 
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -100,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onClick(View v) {
                 activateKIOSK(true);
                 GrantOwner();
-
+//                newOwningTest();
                 if(devicePolicyManager.isDeviceOwnerApp(getPackageName())){
                     Log.d(TAG, "is device owner : "+ devicePolicyManager.isDeviceOwnerApp(getPackageName()));
                 }else{
@@ -131,15 +132,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(dpm.isDeviceOwnerApp(getPackageName())){
             activateKIOSK(true);
             Log.d(TAG, "is device owner ");
-        }else{
+        }else {
             Log.d(TAG, "not device owner ");
         }
     }
-        /*Grant Device Owner Test*/
+
+    /*Grant Device Owner Test*/
     private void GrantOwner(){
         try {
             Log.d(TAG, "applicationPolicyGrant: Running application grant policy");
-            Runtime.getRuntime().exec("dpm remove-active-admin com.example.devownerjav/.DevAdminReceiver");
+            Runtime.getRuntime().exec("dpm set-active-owner com.example.devownerjav/.DevAdminReceiver");
         } catch (Exception e) {
             Log.e(TAG, "device owner not set");
             Log.e(TAG, e.toString());
@@ -293,6 +295,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
+    }
+
+    private void newOwningTest(){
+        Runtime rt = Runtime.getRuntime();
+        Process proc = null;
+        try {
+            proc = rt.exec("dpm set-active-admin com.example.devownerjav/.DevAdminReceiver");
+            BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+
+            BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+
+            // Read the output from the command
+            System.out.println("Here is the standard output of the command:\n");
+            String s = null;
+            while ((s = stdInput.readLine()) != null) {
+                System.out.println(s);
+            }
+
+            // Read any errors from the attempted command
+            System.out.println("Here is the standard error of the command (if any):\n");
+            while ((s = stdError.readLine()) != null) {
+                System.out.println(s);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
