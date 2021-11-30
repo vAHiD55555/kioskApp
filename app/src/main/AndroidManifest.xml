@@ -23,6 +23,7 @@
     <!-- Device Auto Boot -->
     <!-- KIOSK   -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.BROADCAST_PACKAGE_REMOVED" />
 
     <application
         android:allowBackup="true"
@@ -38,7 +39,7 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
 
-                <category android:name="android.intent.category.HOME"/>
+<!--                <category android:name="android.intent.category.HOME"/>-->
             </intent-filter>
         </activity>
 
@@ -68,9 +69,9 @@
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </receiver>
-
 
     </application>
 
